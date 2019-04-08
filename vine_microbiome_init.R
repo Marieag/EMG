@@ -222,6 +222,14 @@ gio_sp3_a = prune_taxa(taxa_sums(gio_sp3_a) > 0, gio_sp3_a); gio_sp3_a
 ## Or you can make subsets of treatments. Specifies which metadata column, and which value in said column should be criteria. 
 #Subset <- subset_samples(physeq, data_column=="value to subset - e.g. control")
 
+###----------Filter by reads------------------------
+
+temp <- gio_sp_1
+
+otu_table(temp)[otu_table(temp)<25 ] <- 0
+y = as.matrix(sort((x / sum(x))*100, decreasing = TRUE))
+write.table(y, file='taxalist_rel_ab_tissue_pt1.tsv', quote=FALSE, sep='\t')
+
 ###----------Filter by relative abundance-----------
 
 #Filters out anything below 0.01% of total abundance. 
@@ -229,6 +237,61 @@ minTotRelAbun = 0.1
 x = taxa_sums(gio_sp_1)
 keepTaxa = rownames(as.data.frame(which(((x / sum(x))*100) > minTotRelAbun)))
 gio_sp1_filter1 = prune_taxa(keepTaxa, gio_sp_1)
+
+###----------Get mean abundance + std---------------
+
+#Actual abundance
+
+temp <- normalise_data(merged_sp_2, norm.method = "relative")
+tmp <- boxplot(t(otu_table(merged_sp_2)))
+temp1 <- t(otu_table(merged_sp_2))
+
+names_list <- as.vector(colnames(temp1))
+names_list <- names_list[!is.na(names_list)]
+
+mean_std <- list()
+mean_std_list<- matrix(nrow=0, ncol=2)
+colnames(mean_std_list) = c("Mean", "St.Dev.")
+
+for (i in 1:length(names_list)){
+
+Mean <- mean(temp1[,i])
+St_Dev <- sqrt(var(temp1[,i]))
+
+mean_std_list_int <-cbind(Mean, St_Dev)
+mean_std_list <- rbind(mean_std_list_int, mean_std_list) 
+}
+
+norm <- mean_std_list
+norm
+
+write.table(mean_std_list, file='mean_std_2.tsv', quote=FALSE, sep='\t')
+
+#Abundance, 
+
+boxplot(t(otu_table(merged_sp_3)))
+temp1 <- t(otu_table(merged_sp_3))
+
+names_list <- as.vector(colnames(temp1))
+names_list <- names_list[!is.na(names_list)]
+
+mean_std <- list()
+mean_std_list<- matrix(nrow=0, ncol=2)
+
+
+for (i in 1:length(names_list)){
+  
+  Mean <- mean(temp1[,i])
+  St_Dev <- sqrt(var(temp1[,i]))
+  
+  mean_std_list_int <-cbind(Mean, St_Dev)
+  mean_std_list <- rbind(mean_std_list_int, mean_std_list) 
+}
+
+colnames(mean_std_list) = c("Mean", "St.Dev.")
+mean_std_list
+
+write.table(mean_std_list, file='mean_std_3.tsv', quote=FALSE, sep='\t')
 
 ###----------Colour palettes------------
 
@@ -259,6 +322,8 @@ p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_2)
+p1 <- p_an_o+scale_colour_manual(values = set_2)
+ggsave(p1, file="Richness_1sp.pdf", width = 30, height = 20, units = "cm")
 write.table(p_an_pvalues, file='richness_1sp_pval.tsv', quote=FALSE, sep='\t')
 write.table(p_an_o$data, file='richness_1sp_data.tsv', quote=FALSE, sep='\t')
 
@@ -268,6 +333,8 @@ p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_8)
+p1 <- p_an_o+scale_colour_manual(values = set_8)
+ggsave(p1, file="Richness_2sp.pdf", width = 30, height = 20, units = "cm")
 write.table(p_an_pvalues, file='richness_2sp_pval.tsv', quote=FALSE, sep='\t')
 write.table(p_an_o$data, file='richness_2sp_data.tsv', quote=FALSE, sep='\t')
 
@@ -277,6 +344,8 @@ p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_3_rb)
+p1 <- p_an_o+scale_colour_manual(values = set_3_rb)
+ggsave(p1, file="Richness_3sp_a.pdf", width = 30, height = 20, units = "cm")
 write.table(p_an_pvalues, file='richness_3spa_pval.tsv', quote=FALSE, sep='\t')
 write.table(p_an_o$data, file='richness_3spa_data.tsv', quote=FALSE, sep='\t')
 
@@ -286,6 +355,8 @@ p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_3_rb)
+p1 <- p_an_o+scale_colour_manual(values = set_3_rb)
+ggsave(p1, file="Richness_3sp_c.pdf", width = 30, height = 20, units = "cm")
 write.table(p_an_pvalues, file='richness_3spc_pval.tsv', quote=FALSE, sep='\t')
 write.table(p_an_o$data, file='richness_3spc_data.tsv', quote=FALSE, sep='\t')
 
@@ -1403,26 +1474,33 @@ print(p)
 
 ###----------------------PERMANOVA---------------------------
 
-{pseq.rel <- microbiome::transform(Minuscore, "compositional")
-otu <- abundances(pseq.rel)
-meta <- meta(pseq.rel)
+pseq.rel <- microbiome::transform(gio_sp2_filter1, "compositional")
+otu <- microbiome::abundances(pseq.rel)
+meta <- microbiome::meta(pseq.rel)
 
-p <- plot_landscape(pseq.rel, method = "NMDS", distance = "bray", col = "Tissue_2", size = 3)
+p <- microbiome::plot_landscape(pseq.rel, method = "NMDS", distance = "jaccard", col = "Tissue_2", size = 3)
 print(p)
 
-permanova <- adonis(t(otu) ~Tissue_2,
-                    data = meta, permutations=999, method = "bray")
+data <- as(sample_data(gio_sp3a_filter1), "data.frame")
+permanova <- vegan::adonis(distance(gio_sp2_filter01, method="jaccard") ~ Tissue_2,
+       data = data)
 
-print(as.data.frame(permanova$aov.tab)["group", "Pr(>F)"])
+permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
+                    data = meta, permutations=999, method = "jaccard")
+write.table(as.data.frame(permanova$aov.tab), file='permanova_3c_jaccard.tsv', quote=FALSE, sep='\t')
 
-dist <- vegdist(t(otu))
-anova(betadisper(dist, meta$Tissue_2))
+print(as.data.frame(permanova$aov.tab))
 
+dist <- vegan::vegdist(t(otu))
+temp <- anova(vegan::betadisper(dist, meta$Tissue_2))
+write.table(temp, file='anova_2.tsv', quote=FALSE, sep='\t')
+
+#Under construction
 coef <- coefficients(permanova)
 top.coef <- coef[rev(order(abs(coef)))[1:20]]
 par(mar = c(3, 14, 2, 1))
 barplot(sort(top.coef), horiz = T, las = 1, main = "Top taxa")
-}
+
 
 ###----------------------Heatmap---------------
 
