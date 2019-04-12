@@ -244,7 +244,7 @@ gio_sp1_filter1 = prune_taxa(keepTaxa, gio_sp_1)
 
 temp <- normalise_data(merged_sp_2, norm.method = "relative")
 tmp <- boxplot(t(otu_table(merged_sp_2)))
-temp1 <- t(otu_table(merged_sp_2))
+temp1 <- t(otu_table(gio_sp_1))
 
 names_list <- as.vector(colnames(temp1))
 names_list <- names_list[!is.na(names_list)]
@@ -292,6 +292,110 @@ colnames(mean_std_list) = c("Mean", "St.Dev.")
 mean_std_list
 
 write.table(mean_std_list, file='mean_std_3.tsv', quote=FALSE, sep='\t')
+
+#EVS per sample
+
+#Make list of means, std and medians for all EVS in dataset 1
+
+tmp <- as.matrix(unique(sample_data(gio_sp_1)[,3]))
+tissuegroups<- as.vector(tmp)
+mean_std_list<- matrix(nrow=341, ncol=0)
+
+for(i in 1:length(tissuegroups)){
+  temp <- subset_samples(gio_sp_1, trunk_canes_1==tissuegroups[i])
+  name <- paste("Means_", tissuegroups[i], sep="")
+  name <- gsub("\\s*\\([^\\)]+\\)_","",name)
+  name2 <- paste(tissuegroups[i])
+  name2 <- gsub("\\s*\\([^\\)]+\\)_","",name2) 
+  
+  x <- cbind(
+    rownames(otu_table(temp)),
+    rowMeans2(otu_table(temp)),
+    rowSds(otu_table(temp)),
+    rowMedians(otu_table(temp)),
+    ""
+  )
+  colnames(x) = c(name2, "Mean", "St.Dev.", "Median", "")
+  
+  assign(name, x) 
+  mean_std_list <- cbind(mean_std_list, x)
+}
+
+head(mean_std_list)
+
+write.table(mean_std_list, file='EVS_mean_std_med_1.tsv', quote=FALSE, sep='\t')
+
+#Make list of means, std and medians for all EVS in dataset 2
+
+tmp <- as.matrix(unique(sample_data(gio_sp_2)[,5]))
+tissuegroups<- as.vector(tmp)
+mean_std_list<- matrix(nrow=296, ncol=0)
+
+for(i in 1:length(tissuegroups)){
+  temp <- subset_samples(gio_sp_2, Tissue_2==tissuegroups[i])
+  name <- paste("Means_", tissuegroups[i], sep="")
+  name <- gsub("\\s*\\([^\\)]+\\)_","",name)
+  name2 <- paste(tissuegroups[i])
+  name2 <- gsub("\\s*\\([^\\)]+\\)_","",name2) 
+
+  x <- cbind(
+    rownames(otu_table(temp)),
+    rowMeans2(otu_table(temp)),
+    rowSds(otu_table(temp)),
+    rowMedians(otu_table(temp)),
+    ""
+    )
+  colnames(x) = c(name2, "Mean", "St.Dev.", "Median", "")
+
+  assign(name, x) 
+  mean_std_list <- cbind(mean_std_list, x)
+  }
+
+head(mean_std_list)
+
+write.table(mean_std_list, file='EVS_mean_std_med_2.tsv', quote=FALSE, sep='\t')
+
+#Make list of means, std and medians for all EVS in dataset 3
+
+tmp <- as.matrix(unique(sample_data(gio_sp_3)[,7]))
+tissuegroups<- as.vector(tmp)
+mean_std_list<- matrix(nrow=219, ncol=0)
+
+for(i in 1:length(tissuegroups)){
+  temp <- subset_samples(gio_sp_3, Description_3==tissuegroups[i])
+  name <- paste("Means_", tissuegroups[i], sep="")
+  name <- gsub("\\s*\\([^\\)]+\\)_","",name)
+  name2 <- paste(tissuegroups[i])
+  name2 <- gsub("\\s*\\([^\\)]+\\)_","",name2) 
+  
+  x <- cbind(
+    rownames(otu_table(temp)),
+    rowMeans2(otu_table(temp)),
+    rowSds(otu_table(temp)),
+    rowMedians(otu_table(temp)),
+    ""
+  )
+  colnames(x) = c(name2, "Mean", "St.Dev.", "Median", "")
+  
+  assign(name, x) 
+  mean_std_list <- cbind(mean_std_list, x)
+}
+
+head(mean_std_list)
+
+write.table(mean_std_list, file='EVS_mean_std_med_3.tsv', quote=FALSE, sep='\t')
+###
+
+
+for (i in 1:length(names_list)){
+  
+  Mean <- mean(temp1[,i])
+  St_Dev <- sqrt(var(temp1[,i]))
+  
+  mean_std_list_int <-cbind(Mean, St_Dev)
+  mean_std_list <- rbind(mean_std_list_int, mean_std_list) 
+}
+
 
 ###----------Colour palettes------------
 
