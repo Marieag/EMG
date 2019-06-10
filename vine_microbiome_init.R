@@ -434,6 +434,7 @@ write.table(p_an_o$data, file='richness_1sp_data.tsv', quote=FALSE, sep='\t')
 p_an <-plot_anova_diversity_pval(gio_sp_2, method = c("shannon", "simpson", "evenness"),
                                  grouping_column ="Tissue_2",pValueCutoff=0.05)
 p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
+p_an_o2 <- p_an_o
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_8)
@@ -445,6 +446,7 @@ write.table(p_an_o$data, file='richness_2sp_data.tsv', quote=FALSE, sep='\t')
 p_an <-plot_anova_diversity_pval(gio_sp3_a, method = c("shannon", "simpson", "evenness"),
                                  grouping_column ="Description_3",pValueCutoff=0.05)
 p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
+p_an_o3 <- p_an_o
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_3_rb)
@@ -456,6 +458,7 @@ write.table(p_an_o$data, file='richness_3spa_data.tsv', quote=FALSE, sep='\t')
 p_an <-plot_anova_diversity_pval(gio_sp3_c, method = c("shannon", "simpson", "evenness"),
                                  grouping_column ="Description_3",pValueCutoff=0.05)
 p_an_o <- p_an[[1]]; p_an_pvalues <- p_an[[2]]
+p_an_o4 <- p_an_o
 p_an_o <- p_an_o + ggtitle("Diversity index + evenness \n * = p<0.05, ** = p<0.01, *** = p<0.001") +
   theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank())
 p_an_o+scale_colour_manual(values = set_3_rb)
@@ -463,6 +466,99 @@ p1 <- p_an_o+scale_colour_manual(values = set_3_rb)
 ggsave(p1, file="Richness_3sp_c.pdf", width = 30, height = 20, units = "cm")
 write.table(p_an_pvalues, file='richness_3spc_pval.tsv', quote=FALSE, sep='\t')
 write.table(p_an_o$data, file='richness_3spc_data.tsv', quote=FALSE, sep='\t')
+
+###-----------------post-hoc richness------------------
+
+#objective 2 
+
+objective2 <- p_an_o2$data
+obj2_simp <- subset.data.frame(objective2, measure == 'Simpson')
+obj2_shan <- subset.data.frame(objective2, measure == 'Shannon')
+obj2_even <- subset.data.frame(objective2, measure != 'Shannon')
+obj2_even <- subset.data.frame(obj2_even, measure != 'Simpson' )
+
+temp <- lm(p_an_o$data$value ~ p_an_o$data$Tissue_2)
+summary(temp)
+anova(temp)
+
+a1 <- aov(obj2_shan$value ~ obj2_shan$Tissue_2)
+posthoc <- TukeyHSD(x=a1, 'obj2_shan$Tissue_2', conf.level=0.95)
+posthoc_shan <- as.data.frame(posthoc$`obj2_shan$Tissue_2`)
+colnames(posthoc_shan) =c("diff","lwr","upr","padj")
+sign_shan <- subset.data.frame(posthoc_shan, padj < 0.05)
+sign_shan
+
+a1 <- aov(obj2_simp$value ~ obj2_simp$Tissue_2)
+posthoc <- TukeyHSD(x=a1, 'obj2_simp$Tissue_2', conf.level=0.95)
+posthoc_simp <- as.data.frame(posthoc$`obj2_simp$Tissue_2`)
+colnames(posthoc_simp) =c("diff","lwr","upr","padj")
+sign_simp <- subset.data.frame(posthoc_simp, padj < 0.05)
+
+a1 <- aov(obj2_even$value ~ obj2_even$Tissue_2)
+posthoc <- TukeyHSD(x=a1, 'obj2_even$Tissue_2', conf.level=0.95)
+posthoc_even <- as.data.frame(posthoc$`obj2_even$Tissue_2`)
+colnames(posthoc_even) =c("diff","lwr","upr","padj")
+sign_even <- subset.data.frame(posthoc_even, padj < 0.05)
+sign_even
+
+#objective 3 
+
+#arms
+objective3 <- p_an_o3$data
+obj3_simp <- subset.data.frame(objective3, measure == 'Simpson')
+obj3_shan <- subset.data.frame(objective3, measure == 'Shannon')
+obj3_even <- subset.data.frame(objective3, measure != 'Shannon')
+obj3_even <- subset.data.frame(obj3_even, measure != 'Simpson' )
+
+a1 <- aov(obj3_shan$value ~ obj3_shan$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj3_shan$Description_3', conf.level=0.95)
+posthoc_shan3 <- as.data.frame(posthoc$`obj3_shan$Description_3`)
+colnames(posthoc_shan3) =c("diff","lwr","upr","padj")
+sign_shan3 <- subset.data.frame(posthoc_shan3, padj < 0.05)
+sign_shan3
+
+a1 <- aov(obj3_simp$value ~ obj3_simp$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj3_simp$Description_3', conf.level=0.95)
+posthoc_simp3 <- as.data.frame(posthoc$`obj3_simp$Description_3`)
+colnames(posthoc_simp3) =c("diff","lwr","upr","padj")
+sign_simp3 <- subset.data.frame(posthoc_simp3, padj < 0.05)
+sign_simp3
+
+a1 <- aov(obj3_even$value ~ obj3_even$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj3_even$Description_3', conf.level=0.95)
+posthoc_even3 <- as.data.frame(posthoc$`obj3_even$Description_3`)
+colnames(posthoc_even3) =c("diff","lwr","upr","padj")
+sign_even3 <- subset.data.frame(posthoc_even3, padj < 0.05)
+sign_even3
+
+#canes
+objective4 <- p_an_o4$data
+obj4_simp <- subset.data.frame(objective4, measure == 'Simpson')
+obj4_shan <- subset.data.frame(objective4, measure == 'Shannon')
+obj4_even <- subset.data.frame(objective4, measure != 'Shannon')
+obj4_even <- subset.data.frame(obj4_even, measure != 'Simpson' )
+
+a1 <- aov(obj4_shan$value ~ obj4_shan$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj4_shan$Description_3', conf.level=0.95)
+posthoc_shan4 <- as.data.frame(posthoc$`obj4_shan$Description_3`)
+colnames(posthoc_shan4) =c("diff","lwr","upr","padj")
+sign_shan4 <- subset.data.frame(posthoc_shan4, padj < 0.05)
+sign_shan4
+
+a1 <- aov(obj4_simp$value ~ obj4_simp$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj4_simp$Description_3', conf.level=0.95)
+posthoc_simp4 <- as.data.frame(posthoc$`obj4_simp$Description_3`)
+colnames(posthoc_simp4) =c("diff","lwr","upr","padj")
+sign_simp4 <- subset.data.frame(posthoc_simp4, padj < 0.05)
+sign_simp4
+
+a1 <- aov(obj4_even$value ~ obj4_even$Description_3)
+posthoc <- TukeyHSD(x=a1, 'obj4_even$Description_3', conf.level=0.95)
+posthoc_even4 <- as.data.frame(posthoc$`obj4_even$Description_3`)
+colnames(posthoc_even4) =c("diff","lwr","upr","padj")
+sign_even4 <- subset.data.frame(posthoc_even4, padj < 0.05)
+sign_even4
+
 
 ###-----------Metacoder----------
 
@@ -1591,6 +1687,8 @@ permanova <- vegan::adonis(distance(gio_sp2_filter01, method="jaccard") ~ Tissue
 
 permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
                     data = meta, permutations=999, method = "jaccard")
+
+
 write.table(as.data.frame(permanova$aov.tab), file='permanova_3c_jaccard.tsv', quote=FALSE, sep='\t')
 
 print(as.data.frame(permanova$aov.tab))
@@ -1599,11 +1697,20 @@ dist <- vegan::vegdist(t(otu))
 temp <- anova(vegan::betadisper(dist, meta$Tissue_2))
 write.table(temp, file='anova_2.tsv', quote=FALSE, sep='\t')
 
-#Under construction
-coef <- coefficients(permanova)
-top.coef <- coef[rev(order(abs(coef)))[1:20]]
-par(mar = c(3, 14, 2, 1))
-barplot(sort(top.coef), horiz = T, las = 1, main = "Top taxa")
+###-------------Post-hoc test--------
+
+permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
+                           data = meta, permutations=999, method = "jaccard")
+
+post_hoc_permanova_2 <- pairwise.adonis(t(otu), meta$Tissue_2, sim.function = "vegdist",
+                sim.method = "bray", p.adjust.m = "bonferroni", reduce = NULL,
+                perm = 999)
+
+post_hoc_permanova_3 <- pairwise.adonis(t(otu), meta$Description_3, sim.function = "vegdist",
+                                        sim.method = "bray", p.adjust.m = "bonferroni", reduce = NULL,
+                                        perm = 999)
+
+
 
 
 ###----------------------Heatmap---------------
