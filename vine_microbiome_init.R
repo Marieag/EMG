@@ -21,6 +21,7 @@ library("dplyr"); packageVersion("dplyr")
 library("tidyr"); packageVersion("tidyr")
 library("plotrix"); packageVersion("plotrix")
 library("microbiome"); packageVersion("microbiome")
+library("pairwiseAdonis"); packageVersion("pairwiseAdonis")
 
 #This page of code is using Phyloseq as the primary package, and uses the others above as additional analyses. 
 #Check out the Phyloseq tutorial and the various package manuals for more info on analyses. 
@@ -487,12 +488,16 @@ posthoc_shan <- as.data.frame(posthoc$`obj2_shan$Tissue_2`)
 colnames(posthoc_shan) =c("diff","lwr","upr","padj")
 sign_shan <- subset.data.frame(posthoc_shan, padj < 0.05)
 sign_shan
+write.table(as.data.frame(posthoc_shan), file='shannon_div_posthoc.tsv', quote=FALSE, sep='\t')
+
 
 a1 <- aov(obj2_simp$value ~ obj2_simp$Tissue_2)
 posthoc <- TukeyHSD(x=a1, 'obj2_simp$Tissue_2', conf.level=0.95)
 posthoc_simp <- as.data.frame(posthoc$`obj2_simp$Tissue_2`)
 colnames(posthoc_simp) =c("diff","lwr","upr","padj")
 sign_simp <- subset.data.frame(posthoc_simp, padj < 0.05)
+write.table(as.data.frame(posthoc_simp), file='simpson_div_posthoc.tsv', quote=FALSE, sep='\t')
+
 
 a1 <- aov(obj2_even$value ~ obj2_even$Tissue_2)
 posthoc <- TukeyHSD(x=a1, 'obj2_even$Tissue_2', conf.level=0.95)
@@ -500,6 +505,7 @@ posthoc_even <- as.data.frame(posthoc$`obj2_even$Tissue_2`)
 colnames(posthoc_even) =c("diff","lwr","upr","padj")
 sign_even <- subset.data.frame(posthoc_even, padj < 0.05)
 sign_even
+write.table(as.data.frame(posthoc_even), file='evenness_div_posthoc.tsv', quote=FALSE, sep='\t')
 
 #objective 3 
 
@@ -1672,45 +1678,80 @@ print(p)
 
 
 
-###----------------------PERMANOVA---------------------------
+###----------------------PERMANOVA + post-hoc pairwise adonis---------------------------
 
 pseq.rel <- microbiome::transform(gio_sp2_filter1, "compositional")
 otu <- microbiome::abundances(pseq.rel)
 meta <- microbiome::meta(pseq.rel)
 
-p <- microbiome::plot_landscape(pseq.rel, method = "NMDS", distance = "jaccard", col = "Tissue_2", size = 3)
-print(p)
+# p <- microbiome::plot_landscape(pseq.rel, method = "NMDS", distance = "jaccard", col = "Tissue_2", size = 3)
+# print(p)
+# 
+# data <- as(sample_data(gio_sp3a_filter1), "data.frame")
+# permanova <- vegan::adonis(distance(gio_sp2_filter01, method="jaccard") ~ Tissue_2,
+#        data = data)
 
-data <- as(sample_data(gio_sp3a_filter1), "data.frame")
-permanova <- vegan::adonis(distance(gio_sp2_filter01, method="jaccard") ~ Tissue_2,
-       data = data)
-
-permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
+permanova <- vegan::adonis(t(otu)~ Tissue_2,
                     data = meta, permutations=999, method = "jaccard")
-
-
-write.table(as.data.frame(permanova$aov.tab), file='permanova_3c_jaccard.tsv', quote=FALSE, sep='\t')
-
-print(as.data.frame(permanova$aov.tab))
-
-dist <- vegan::vegdist(t(otu))
-temp <- anova(vegan::betadisper(dist, meta$Tissue_2))
-write.table(temp, file='anova_2.tsv', quote=FALSE, sep='\t')
-
-###-------------Post-hoc test--------
-
-permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
-                           data = meta, permutations=999, method = "jaccard")
+permanova$aov.tab
 
 post_hoc_permanova_2 <- pairwise.adonis(t(otu), meta$Tissue_2, sim.function = "vegdist",
-                sim.method = "bray", p.adjust.m = "bonferroni", reduce = NULL,
-                perm = 999)
+                                        sim.method = "jaccard", p.adjust.m = "bonferroni", reduce = NULL,
+                                        perm = 999)
+post_hoc_permanova_2
+write.table(as.data.frame(permanova$aov.tab), file='permanova_jaccard_2.tsv', quote=FALSE, sep='\t')
+write.table(as.data.frame(post_hoc_permanova_2), file='permanova_jaccard_2_post_hoc_bonferroni.tsv', quote=FALSE, sep='\t')
 
-post_hoc_permanova_3 <- pairwise.adonis(t(otu), meta$Description_3, sim.function = "vegdist",
-                                        sim.method = "bray", p.adjust.m = "bonferroni", reduce = NULL,
+
+# write.table(as.data.frame(permanova$aov.tab), file='permanova_3c_jaccard.tsv', quote=FALSE, sep='\t')
+# 
+# print(as.data.frame(permanova$aov.tab))
+# 
+# dist <- vegan::vegdist(t(otu))
+# temp <- anova(vegan::betadisper(dist, meta$Tissue_2))
+# write.table(temp, file='anova_2.tsv', quote=FALSE, sep='\t')
+
+#objective 3
+#arms
+pseq.rel <- microbiome::transform(gio_sp3a_filter1, "compositional")
+otu <- microbiome::abundances(pseq.rel)
+meta <- microbiome::meta(pseq.rel)
+
+permanova_3a <- vegan::adonis(t(otu)~ Description_3,
+                           data = meta, permutations=999, method = "jaccard")
+
+post_hoc_permanova_3a <- pairwise.adonis(t(otu), meta$Description_3, sim.function = "vegdist",
+                                        sim.method = "jaccard", p.adjust.m = "bonferroni", reduce = NULL,
                                         perm = 999)
 
+write.table(as.data.frame(permanova_3a$aov.tab), file='permanova_jaccard_3a.tsv', quote=FALSE, sep='\t')
+write.table(as.data.frame(post_hoc_permanova_3a), file='permanova_jaccard_3a_post_hoc_bonferroni.tsv', quote=FALSE, sep='\t')
 
+#canes
+pseq.rel <- microbiome::transform(gio_sp3c_filter1, "compositional")
+otu <- microbiome::abundances(pseq.rel)
+meta <- microbiome::meta(pseq.rel)
+
+permanova_3c <- vegan::adonis(t(otu)~ Description_3,
+                           data = meta, permutations=999, method = "jaccard")
+
+post_hoc_permanova_3c <- pairwise.adonis(t(otu), meta$Description_3, sim.function = "vegdist",
+                                        sim.method = "jaccard", p.adjust.m = "bonferroni", reduce = NULL,
+                                        perm = 999)
+write.table(as.data.frame(permanova_3c$aov.tab), file='permanova_jaccard_3c.tsv', quote=FALSE, sep='\t')
+write.table(as.data.frame(post_hoc_permanova_3c), file='permanova_jaccard_3c_post_hoc_bonferroni.tsv', quote=FALSE, sep='\t')
+
+# 
+# ###-------------Post-hoc test--------
+# 
+# permanova <- vegan::adonis(t(otu)~ Tissue_2 + Description_3,
+#                            data = meta, permutations=999, method = "jaccard")
+# 
+# post_hoc_permanova_2 <- pairwise.adonis(t(otu), meta$Tissue_2, sim.function = "vegdist",
+#                 sim.method = "bray", p.adjust.m = "bonferroni", reduce = NULL,
+#                 perm = 999)
+# 
+# write.table(as.data.frame(post_hoc_permanova_3a), file='permanova_jaccard_3a_post_hoc_bonferroni.tsv', quote=FALSE, sep='\t')
 
 
 ###----------------------Heatmap---------------
