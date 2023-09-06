@@ -1,6 +1,11 @@
 #Code written by M. R. Aggerbeck. 
 #mrag@envs.au.dk
-#Creative commons, 2018. 
+#Creative commons. 
+
+#Published article:
+#Muskoxen homogenise soil microbial communities and affect the abundance of methanogens and methanotrophs
+#Aggerbeck et al., 2022
+#10.1016/j.scitotenv.2022.153877
 
 ###----------------PACKAGES--------------
 #Packages used in the following code. 
